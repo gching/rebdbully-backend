@@ -10,4 +10,13 @@ router.get('/firepadtest', function(req, res){
   res.render('firepad');
 });
 
+router.get('/firepad-users', function(req, res){
+  res.render('firepad2');
+});
+
+router.get('/firepad-simple', function(req, res){
+  res.render('firepad-simple');
+});
+
+
 module.exports = router;

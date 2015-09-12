@@ -44,7 +44,132 @@
       //// Initialize contents.
       firepad.on('ready', function() {
         if (firepad.isHistoryEmpty()) {
-          firepad.setHtml('<span style="font-size: 24px;">Rich-text editing with <span style="color: red">Firepad!</span></span><br/><br/>Collaborative-editing made easy.\n');
+          firepad.setHtml(
+              '<span style="font-size: 24px;">Rich-text editing with <span style="color: red">Firepad!</span></span><br/>\n' +
+              '<br/>' +
+              '<div style="font-size: 18px">' +
+              'Supports:<br/>' +
+              '<ul>' +
+                '<li>Different ' +
+                  '<span style="font-family: impact">fonts,</span>' +
+                  '<span style="font-size: 24px;"> sizes, </span>' +
+                  '<span style="color: blue">and colors.</span>' +
+                '</li>' +
+                '<li>' +
+                  '<b>Bold, </b>' +
+                  '<i>italic, </i>' +
+                  '<u>and underline.</u>' +
+                '</li>' +
+                '<li>Lists' +
+                  '<ol>' +
+                    '<li>One</li>' +
+                    '<li>Two</li>' +
+                  '</ol>' +
+                '</li>' +
+                '<li>Undo / redo</li>' +
+                '<li>Cursor / selection synchronization.</li>' +
+                '<li><checkbox></checkbox> It supports customized entities.</li>' +
+                '<li>And it\'s all fully collaborative!</li>' +
+                '<header-timestamp>Header Element</header-timestamp>' +
+              '</ul>' +
+              '</div>');
+        }
+      });
+      // An example of a complex custom entity.
+
+      firepad.registerEntity('header-timestamp', {
+
+        /**
+        Renders the element given the info with listener on click.
+        */
+        render: function(info, entityHandler) {
+          console.log('render')
+          console.log(entityHandler)
+
+          // Create a header with h2 tag
+          var headerWithTimestamp = document.createElement('span');
+          headerWithTimestamp.style['font-size'] = '24px';
+
+          // Set the timestamp on the element
+          if (info.timestamp){
+            headerWithTimestamp.timestamp = info.timestamp;
+          }
+
+          // Set the text content from the information
+          headerWithTimestamp.textContent = info.textContent;
+
+
+          // When clicked, return information on what the time is
+          headerWithTimestamp.addEventListener('click', function(){
+            console.log('Clicked with timestamp ' + info.timestamp);
+          });
+
+          console.log(headerWithTimestamp)
+          return headerWithTimestamp;
+
+        }.bind(this),
+
+        /**
+        Sets default info with timestamp and the actual text inside from the
+        actual element inserted.
+        */
+        fromElement: function(element){
+          // Sets a timestamp or a provided with from the element from the
+          // provided attribute. As well, gets the text in between the tag and
+          // provides it in info.
+          // TODO - Set the timestamp attribute
+          var info = {timestamp: '0:00', textContent: element.textContent};
+          return info;
+        },
+        /**
+        On update from firebase, we update it on the element.
+        */
+        update: function(info, element) {
+          // TODO - Change the text if changed.
+          if (info.timestamp){
+            element.timestamp = info.timestamp
+          } else {
+            element.timestamp = '0:00'
+          }
+        }
+
+
+      });
+      firepad.registerEntity('checkbox', {
+        render: function (info, entityHandler) {
+          var inputElement = document.createElement('input');
+          inputElement.setAttribute('type', 'checkbox');
+          if(info.checked) {
+            inputElement.checked = 'checked';
+          }
+          inputElement.addEventListener('click', function () {
+            entityHandler.replace({checked:this.checked});
+          });
+          return inputElement;
+        }.bind(this),
+        fromElement: function (element) {
+          var info = {};
+          if(element.hasAttribute('checked')) {
+            info.checked = true;
+          }
+          return info;
+        },
+        update: function (info, element) {
+          console.log(info)
+          console.log('here')
+          if (info.checked) {
+            element.checked = 'checked';
+          } else {
+            element.checked = null;
+          }
+        },
+        export: function (info) {
+          var inputElement = document.createElement('checkbox');
+          if(info.checked) {
+            inputElement.setAttribute('checked', true);
+          }
+          console.log("blah" + inputElement)
+          return inputElement;
         }
       });
     }
@@ -58,6 +183,8 @@
         ref = ref.push(); // generate unique location.
         window.location = window.location + '#' + ref.key(); // add it as a hash to the URL.
       }
+      if (typeof console !== 'undefined')
+        console.log('Firebase data: ', ref.toString());
       return ref;
     }
     init();
